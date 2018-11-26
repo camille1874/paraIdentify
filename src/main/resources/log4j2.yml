@@ -1,0 +1,70 @@
+configuration:
+  status: error #log4j本身的日志级别，不要修改
+  monitorInterval: 60 #刷新间隔，log4j2支持程序运行时重新加载配置
+  appenders: #记录器
+    RollingFile: #滚动文件
+      - #这个表示array
+        name: file #记录器名称
+        fileName: logs/log.log #默认文件名
+        PatternLayout:
+          pattern: '[%d{yyyy-MM-dd HH:mm:ss,SSS}][%t][%-5p] %c{1.}: %m%n%ex' #日志格式
+        filePattern: 'logs/log-%d{yyyy-MM-dd}.log' #旧文件的文件名格式
+        Policies: #滚动策略
+          TimeBasedTriggeringPolicy: #按时间滚动，每天1（至少）个文件
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy: #单文件最大大小
+            size: 512MB
+        DefaultRolloverStrategy: #最大文件数，超出会删除最旧的文件
+          max: 10
+      - #这是第二个RollingFile记录器
+        name: err
+        fileName: logs/err.log
+        ThresholdFilter: #该文件只记录WARN或以上的log
+          level: WARN
+        PatternLayout:
+          pattern: '[%d{yyyy-MM-dd HH:mm:ss,SSS}][%t][%-5p] %c{1.}.%M(%L): %m%n%ex'
+        filePattern: 'logs/err-%d{yyyy-MM-dd}.log'
+        Policies:
+          TimeBasedTriggeringPolicy:
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy:
+            size: 512MB
+        DefaultRolloverStrategy:
+          max: 10
+      - # 专门写http访问日志的
+        name: http
+        fileName: logs/http.log
+        PatternLayout:
+          pattern: '[%d{yyyy-MM-dd HH:mm:ss,SSS}][%t][%-5p] %c{1.}.%M(%L): %m%n%ex'
+        filePattern: 'logs/mq-%d{yyyy-MM-dd}.log'
+        Policies:
+          TimeBasedTriggeringPolicy:
+            interval: 1
+            modulate: true
+          SizeBasedTriggeringPolicy:
+            size: 512MB
+        DefaultRolloverStrategy:
+          max: 10
+    Console: #命令行
+      name: console
+      ThresholdFilter:
+        level: info
+      PatternLayout:
+        pattern: '[%d{yyyy-MM-dd HH:mm:ss,SSS}][%t][%-5p] %c{1.}: %m%n%ex'
+  loggers: #日志
+    root: #根节点
+      level: info  #级别
+      AppenderRef: #需要输出的Appender
+      - ref: file
+      - ref: err
+      - ref: console
+      additivity: false #是否向上传递（默认所有logger都向上传递至root）
+    logger: #其他节点，如果没有配置那就是默认值。事实上每个getLogger都可以对应这里的一个logger。#不配置的时候这些logger都会向上传递至根节点，因此就相当于是root的配置
+      -
+       name: com.giiso.algorithm.newsclassificationserver.RunServer #name和getLogger对应，如果是class其实就是class名
+       level: info #自定义级别，有别于root
+       additivity: false #是否向上传递（默认所有logger都向上传递至root）
+       AppenderRef:
+         ref: http
