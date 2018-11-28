@@ -84,36 +84,40 @@ public class ESUtil {
             if (textcontent == null)
                 continue;
             textcontent = textcontent.trim();
-//            List<String> sentences = TextUtil.getSentences(textcontent);
-//            for (String s: sentences)
-//            {
-//                double dis = TextUtil.getEditDistance(s, triggerSentence);
-//                if (dis < min)
-//                {
-//                    min = dis;
-//                    result = source;
-//                    tmp = s;
-//                }
-//            }
-            double dis = TextUtil.getEditDistance(textcontent, triggerSentence);
-            if (dis < min)
+            List<String> sentences = TextUtil.getSentences(textcontent);
+            for (String s: sentences)
             {
-                min = dis;
-                result = source;
+                double dis = TextUtil.getEditDistance(s, triggerSentence);
+                if (dis < min )
+                {
+                    min = dis;
+                    result = source;
+                    tmp = s;
+                }
             }
+
+//            double dis = TextUtil.getEditDistance(textcontent, triggerSentence);
+//            double dis = TextUtil.getWord2VecDistance(textcontent, triggerSentence);
+
+//            double dis = TextUtil.getEditDistance(textcontent, triggerSentence);
+//            if (dis < min)
+//            {
+//                min = dis;
+//                result = source;
+//            }
+            result.put("target", TextUtil.cleanStr(tmp));
         }
         return result;
     }
 
     private static QueryBuilder buildMatchQuery(String query) {
         BoolQueryBuilder bqb = new BoolQueryBuilder();
-//        bqb.should(QueryBuilders.matchPhraseQuery("textcontent", query));
-//        bqb.should(QueryBuilders.queryStringQuery(query));
         bqb.should(QueryBuilders.matchQuery("textcontent", query));
         return bqb;
     }
 
     public static void main(String[] args) {
-        System.out.println(searchParas(10, "深圳天气"));
+        String target = (String) searchParas(10, "深圳天气怎么样").get("target");
+        System.out.println(target);
     }
 }
