@@ -109,11 +109,11 @@ public class TextUtil {
 //        // 句子过长导致编辑距离过大，丢失最佳句子，逗号也加入进行分句
 //        //  暂时不加，通过除以句长进行归一化了
 //        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|，|,]"));
-        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"|\"]"));
+        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"]"));
     }
 
     public static String cleanStr(String str) {
-        String regEx = "[`~@#$%^&*()+=|{}':;'//[//]<>/~@#￥%&*（）——+|{}【】‘；：”“’\"\"'']";
+        String regEx = "[`~@#$%^&*()+=|{}':;'//[//]<>/~@#￥%&*（）——+|{}【】‘；：”“’\"\'\\s*|\t|\r|\n]";
         Pattern p = Pattern.compile(regEx);
         Matcher m = p.matcher(str);
         return m.replaceAll("").trim();

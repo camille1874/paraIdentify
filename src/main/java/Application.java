@@ -3,6 +3,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import spark.servlet.SparkApplication;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static spark.Spark.port;
@@ -17,14 +19,12 @@ public class Application implements SparkApplication {
         ESUtil.getInstance();
         port(21628);
         post("/paraIdentify", (request, response) -> {
-//        post("/paraIdentify", "application/json", (request, response) -> {
-//            JsonParser parser = new JsonParser();
-//            JsonObject jsonObject = parser.parse(request.body()).getAsJsonObject();
-//            String triggerSentence = TextUtil.cleanStr(String.valueOf(jsonObject.get("triggerSentence")));
-//            String triggerSentence = TextUtil.cleanStr(request.body());
             String triggerSentence = TextUtil.cleanStr(request.queryParams("triggerSentence"));
-            System.out.println(triggerSentence);
-            Map<String, Object> result = ParaSearcher.searchParas(10, triggerSentence);
+            List<String> seggedSentences = TextUtil.getSentences(triggerSentence);
+            Map<String, Map<String, Object>> result = new HashMap<>();
+            for (String s : seggedSentences) {
+                result.put(s, ParaSearcher.searchParas(10, s));
+            }
             return new Gson().toJson(result);
         });
     }
