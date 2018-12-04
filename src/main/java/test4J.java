@@ -60,11 +60,15 @@ public class test4J {
                 Map<String, Object> target = entry.getValue();
                 String targetSentence = (String) target.get("target");
                 String title = (String) target.get("title");
-                String content = (String) target.get("textcontent");
+                String content = (String) target.get("content");
+                String url = (String) target.get("url");
+                String time = (String) target.get("time");
                 System.out.println("原句：" + sourceSentence);
                 System.out.println("相似句：" + targetSentence);
                 System.out.println("文章：" + title);
-//                System.out.println("内容：" + content);
+                System.out.println("URL：" + url);
+                System.out.println("时间：" + time);
+                System.out.println("相似内容片段：" + content);
             }
             System.out.println();
         }

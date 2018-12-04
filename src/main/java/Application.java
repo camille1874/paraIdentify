@@ -20,11 +20,16 @@ public class Application implements SparkApplication {
         port(21628);
         post("/paraIdentify", (request, response) -> {
             String triggerSentence = TextUtil.cleanStr(request.queryParams("triggerSentence"));
+            System.out.println("查询内容：" + triggerSentence);
             List<String> seggedSentences = TextUtil.getSentences(triggerSentence);
             Map<String, Map<String, Object>> result = new HashMap<>();
+            long start = System.currentTimeMillis();
             for (String s : seggedSentences) {
                 result.put(s, ParaSearcher.searchParas(10, s));
             }
+            long end = System.currentTimeMillis();
+            System.out.println("分句数量：" + seggedSentences.size());
+            System.out.println("处理时间：" + (end - start) / 1000.0 + "s");
             return new Gson().toJson(result);
         });
     }

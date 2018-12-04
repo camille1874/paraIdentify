@@ -46,7 +46,7 @@ public class ESUtil {
         List<Map<String, Object>> res;
         while (true) {
             try {
-                res = client.search(0, buildMatchQuery(triggerSentence), null, size, "title", "textcontent");
+                res = client.search(0, buildMatchQuery(triggerSentence), null, size, "title", "textcontent", "time", "url");
                 break;
             } catch (Exception e) {
                 e.printStackTrace();

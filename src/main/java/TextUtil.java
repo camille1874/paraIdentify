@@ -110,6 +110,7 @@ public class TextUtil {
 //        //  暂时不加，通过除以句长进行归一化了
 //        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|，|,]"));
         return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"]"));
+//        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"|,|，]"));
     }
 
     public static String cleanStr(String str) {

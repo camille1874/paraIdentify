@@ -29,7 +29,7 @@ public class ParaSearcher {
             textcontent = textcontent.trim();
             List<String> sentences = TextUtil.getSentences(textcontent);
             for (String s : sentences) {
-                double dis = TextUtil.getEditDistance(s, triggerSentence);
+                double dis = TextUtil.getEditDistance(TextUtil.cleanStr(s), triggerSentence);
                 if (dis < min) {
                     min = dis;
                     result = source;
@@ -46,6 +46,17 @@ public class ParaSearcher {
 //                min = dis;
 //                result = source;
 //            }
+
+            int idx = textcontent.indexOf(tmp);
+            int start = Integer.max(0, textcontent.lastIndexOf("。", Integer.max(0, idx - 2)) + 1);
+            int end = Integer.min(textcontent.length(),
+                    textcontent.indexOf("。", idx + tmp.length() + 1) + 1);
+            String content = textcontent.substring(start, end);
+            if (content.indexOf(tmp) >= 0) {
+                result.put("content", TextUtil.cleanStr(content));
+            } else {
+                result.put("content", TextUtil.cleanStr(tmp));
+            }
             result.put("target", TextUtil.cleanStr(tmp));
         }
         return result;
