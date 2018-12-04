@@ -36,35 +36,25 @@ public class ParaSearcher {
                     tmp = s;
                 }
             }
-
-//            double dis = TextUtil.getEditDistance(textcontent, triggerSentence);
-//            double dis = TextUtil.getWord2VecDistance(textcontent, triggerSentence);
-
-//            double dis = TextUtil.getEditDistance(textcontent, triggerSentence);
-//            if (dis < min)
-//            {
-//                min = dis;
-//                result = source;
-//            }
-
-            int idx = textcontent.indexOf(tmp);
-            int start = Integer.max(0, textcontent.lastIndexOf("。", Integer.max(0, idx - 2)) + 1);
-            int end = Integer.min(textcontent.length(),
-                    textcontent.indexOf("。", idx + tmp.length() + 1) + 1);
-            String content = textcontent.substring(start, end);
-            if (content.indexOf(tmp) >= 0) {
-                result.put("content", TextUtil.cleanStr(content));
-            } else {
-                result.put("content", TextUtil.cleanStr(tmp));
-            }
-            result.put("target", TextUtil.cleanStr(tmp));
         }
+        String resultContent = (String) result.get("textcontent");
+        try {
+            int idx = resultContent.indexOf(tmp);
+            int start = Integer.max(0, resultContent.lastIndexOf("。", Integer.max(0, idx - 2)) + 1);
+            int end = Integer.min(resultContent.length(),
+                    resultContent.indexOf("。", idx + tmp.length() + 1) + 1);
+            String content = resultContent.substring(start, end);
+            result.put("content", TextUtil.cleanStr(content));
+        } catch (Exception e) {
+            result.put("content", TextUtil.cleanStr(tmp));
+        }
+        result.put("target", TextUtil.cleanStr(tmp));
         return result;
     }
 
     public static void main(String[] args) {
         ESUtil.getInstance();
-        String target = (String) searchParas(10, "深圳天气怎样").get("target");
+        String target = (String) searchParas(10, "深圳天气怎样").get("content");
         System.out.println(target);
     }
 }

@@ -3,10 +3,7 @@ import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.util.PythonInterpreter;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +84,7 @@ public class TextUtil {
     }
 
     public static List<String> getSentences(String textcontent) {
-//        String regEx = "[。|！|?|；|;|？|?]";
+//        String regEx = "[。|！|?|；|;|？|?|“|”|\"]";
 //        Pattern p = Pattern.compile(regEx);
 //        Matcher m = p.matcher(textcontent);
 //        String[] words = p.split(textcontent);
@@ -106,11 +103,20 @@ public class TextUtil {
 //        }
 //        return Arrays.asList(words);
 
-//        // 句子过长导致编辑距离过大，丢失最佳句子，逗号也加入进行分句
-//        //  暂时不加，通过除以句长进行归一化了
-//        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|，|,]"));
+
         return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"]"));
-//        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"|,|，]"));
+//        List<String> tmpSens = Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"]"));
+//        List<String> resultSens = new ArrayList<>();
+//        for (String s: tmpSens)
+//        {
+//            if (s.length() > 30)
+//            {
+//                Collections.addAll(resultSens, s.split("[，|,]"));
+//            } else {
+//                resultSens.add(s);
+//            }
+//        }
+//        return resultSens;
     }
 
     public static String cleanStr(String str) {

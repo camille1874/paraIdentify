@@ -43,19 +43,11 @@ public class ESUtil {
     }
 
     public static List<Map<String, Object>> searchDocs(int size, String triggerSentence) {
-        List<Map<String, Object>> res;
-        while (true) {
-            try {
-                res = client.search(0, buildMatchQuery(triggerSentence), null, size, "title", "textcontent", "time", "url");
-                break;
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
+        List<Map<String, Object>> res = null;
+        try {
+            res = client.search(0, buildMatchQuery(triggerSentence), null, size, "title", "textcontent", "time", "url");
+        } catch (IOException e) {
+            return null;
         }
         return res;
     }
