@@ -4,6 +4,7 @@ import com.giiso.elasticsearch.visitlog.RestLogConsumer;
 import com.giiso.keywords.textrank.TextRankForIndex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 
 /**
@@ -45,7 +48,15 @@ public class ESUtil {
     public static List<Map<String, Object>> searchDocs(int size, String triggerSentence) {
         List<Map<String, Object>> res = null;
         try {
-            res = client.search(0, buildMatchQuery(triggerSentence), null, size, "title", "textcontent", "time", "url");
+            List<AnalyzeResponse.AnalyzeToken> words = client.analyze(triggerSentence, "nlp_query");
+            List<String> searchWords = new ArrayList<>();
+            for (AnalyzeResponse.AnalyzeToken w: words)
+            {
+                searchWords.add(w.getTerm());
+            }
+//            System.out.println(searchWords);
+            res = client.search(0, termsQuery("textcontent", searchWords), null, size, "title", "textcontent", "time", "url");
+//            res = client.search(0, buildMatchQuery(triggerSentence), null, size, "title", "textcontent", "time", "url");
         } catch (IOException e) {
             return null;
         }

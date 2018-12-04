@@ -1,3 +1,4 @@
+import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse;
 import org.python.core.PyFunction;
 import org.python.core.PyObject;
 import org.python.core.PyString;
@@ -125,6 +126,7 @@ public class TextUtil {
         Matcher m = p.matcher(str);
         return m.replaceAll("").trim();
     }
+
 
 //    public static void main(String[] args) {
 //        System.out.println(getMinEditDistance("嗨你好哇", "你好"));
