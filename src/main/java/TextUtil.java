@@ -1,8 +1,6 @@
-import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse;
-import org.python.core.PyFunction;
-import org.python.core.PyObject;
-import org.python.core.PyString;
-import org.python.util.PythonInterpreter;
+package com.giiso.text.service;
+
+import com.giiso.config.SystemPropertiesUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -40,95 +38,78 @@ public class TextUtil {
 
     public static double getEditDistance(String s, String triggerSentence) {
         double result = Double.MAX_VALUE;
+        double result_left;
+        double result_right;
+        double result_raw;
+        int strLen = s.length();
+        int triggerLen = triggerSentence.length();
+        int testLen = 30;
+        int defaultLen = 40;
+        int pos = defaultLen - testLen;
         if (s.length() != 0) {
-            result = getEditDistanceMatrix(s, triggerSentence)[s.length()][triggerSentence.length()] / s.length();
+            String strLeft = s.substring(0, min(testLen, strLen));
+            String triggerLeft = triggerSentence.substring(0, min(testLen, triggerLen));
+            String strRight = s.substring((strLen > pos) ? pos: 0, strLen);
+            String triggerRight = triggerSentence.substring((triggerLen > pos) ? pos: 0, triggerLen);
+            result_left = getEditDistanceMatrix(strLeft, triggerLeft)[strLeft.length()][triggerLeft.length()] / strLeft.length();
+            result_right = getEditDistanceMatrix(strRight, triggerRight)[strRight.length()][triggerRight.length()] / strRight.length();
+            result_raw = getEditDistanceMatrix(s, triggerSentence)[strLen][triggerLen] / strLen;
+            result = min(result_raw, min(result_left, result_right));
         }
         return result;
+//        double result = Double.MAX_VALUE;
+//        if (s.length() != 0) {
+//            result = getEditDistanceMatrix(s, triggerSentence)[s.length()][triggerSentence.length()] / s.length();
+//        }
+//        return result;
     }
 
-    // 编辑距离矩阵内元素相减
-    // TODO:待检测
-    public static Map<String, Double> getMinEditDistance(String doc, String sen) {
-        double[][] distancesMatrix = getEditDistanceMatrix(doc, sen);
-        double min = Double.MAX_VALUE;
-        Map<String, Double> result = new HashMap<>();
-        if (distancesMatrix.length == 0 || distancesMatrix[0].length == 0) {
-            return result;
-        }
-        int m = doc.length();
-        int n = sen.length();
-        int begin = 0;
-        int end = 0;
-        for (int i = 1; i < m + 1; ++i) {
-            for (int j = 1; j < i; ++j) {
-                double tmp = distancesMatrix[i][n] - distancesMatrix[j][1];
-                if (tmp < min) {
-                    min = tmp;
-                    begin = j - 1;
-                    end = i - 1;
+    public static List<String> processTriggerSentence(String text) {
+        List<String> result = new ArrayList<>();
+        List<String> sens = getSentences(text);
+        int minlength = Integer.valueOf(SystemPropertiesUtils.getString("minlength.value", "15"));
+        int maxlength = Integer.valueOf(SystemPropertiesUtils.getString("maxlength.value", "40"));
+
+        for (String s : sens) {
+            if (s.length() > maxlength) {
+                String[] tmp = s.split("[，,]");
+                int i = 0;
+                for (; i < tmp.length - 1; i += 2) {
+                    result.add(tmp[i] + "，" + tmp[i + 1]);
                 }
+                if (i == tmp.length - 1) {
+                    result.add(tmp[i] + "，");
+                }
+            } else if (s.length() > minlength){
+                result.add(s);
             }
         }
-        result.put(doc.substring(begin, end + 1), min);
         return result;
-    }
-
-    public static double getWord2VecDistance(String s1, String s2) {
-        PythonInterpreter interpreter = new PythonInterpreter();
-        ;
-        String basePath = TextUtil.class.getResource("").getPath();
-        interpreter.execfile(basePath + "word2vec.py");
-        PyFunction func = interpreter.get("get_sentence_sim", PyFunction.class);
-        PyObject pyobj = func.__call__(new PyString(s1), new PyString(s2));
-        System.out.println("anwser = " + pyobj.toString());
-        return Double.parseDouble(pyobj.toString());
     }
 
     public static List<String> getSentences(String textcontent) {
-//        String regEx = "[。|！|?|；|;|？|?|“|”|\"]";
-//        Pattern p = Pattern.compile(regEx);
-//        Matcher m = p.matcher(textcontent);
-//        String[] words = p.split(textcontent);
-//        //将句子结束符连接到相应的句子后
-//        if(words.length > 0)
-//        {
-//            int count = 0;
-//            while(count < words.length)
-//            {
-//                if(m.find())
-//                {
-//                    words[count] += m.group();
-//                }
-//                count++;
-//            }
-//        }
-//        return Arrays.asList(words);
-
-
-        return Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"]"));
-//        List<String> tmpSens = Arrays.asList(textcontent.split("[。|！|?|；|;|？|?|“|”|\"]"));
-//        List<String> resultSens = new ArrayList<>();
-//        for (String s: tmpSens)
-//        {
-//            if (s.length() > 30)
-//            {
-//                Collections.addAll(resultSens, s.split("[，|,]"));
+//        List<String> result = new ArrayList<>();
+//         不采用，对文章长句按两句断句容易因断句不当错失最佳片段
+//        for (String s : textcontent.split("[。|！|?|；|;|？|?|“|”|\"]")) {
+//            if (s.length() < 40) {
+//                result.add(s);
 //            } else {
-//                resultSens.add(s);
+//                String[] tmp = s.split("，");
+//                int i = 0;
+//                for (; i < tmp.length - 1; i += 2) {
+//                    result.add(tmp[i] + "，" + tmp[i + 1]);
+//                }
+//                if (i == tmp.length - 1) {
+//                    result.add(tmp[i] + "，");
+//                }
 //            }
-//        }
-//        return resultSens;
+        return Arrays.asList(textcontent.split("[。|！|!|?|；|;|？|?|“|”|\"]"));
     }
 
     public static String cleanStr(String str) {
         String regEx = "[`~@#$%^&*()+=|{}':;'//[//]<>/~@#￥%&*（）——+|{}【】‘；：”“’\"\'\\s*|\t|\r|\n]";
         Pattern p = Pattern.compile(regEx);
         Matcher m = p.matcher(str);
-        return m.replaceAll("").trim();
+        return m.replaceAll("").replaceAll("[ 　  ]", ""); //去掉全角空格等
     }
-
-
-//    public static void main(String[] args) {
-//        System.out.println(getMinEditDistance("嗨你好哇", "你好"));
-//    }
 }
