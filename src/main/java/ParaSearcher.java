@@ -18,6 +18,7 @@ public class ParaSearcher {
         if (triggerSentence == null || triggerSentence.length() == 0) {
             return null;
         }
+
         return searchSentences(ESUtil.searchDocs(tags, size, triggerSentence, keywords), triggerSentence);
     }
 
@@ -31,13 +32,14 @@ public class ParaSearcher {
             return null;
         }
         for (Map<String, Object> source : res) {
+//            System.out.println((String) source.get("_id") + source.get("title"));
             String textcontent = (String) source.get("textcontent");
             if (textcontent == null)
                 continue;
             textcontent = textcontent.trim();
             List<String> sentences = TextUtil.processTriggerSentence(textcontent);
             for (String s : sentences) {
-                double dis = TextUtil.getEditDistance(TextUtil.cleanStr(s), triggerSentence);
+                double dis = TextUtil.getEditDistance(TextUtil.cleanStr(s), TextUtil.cleanStr(triggerSentence));
                 if (dis < min) {
                     min = dis;
                     result = source;
@@ -54,15 +56,25 @@ public class ParaSearcher {
         } else {
             try {
                 int idx = resultContent.indexOf(tmp);
-                int start = Integer.max(0, resultContent.lastIndexOf("。", Integer.max(0, idx - 2)) + 1);
-                int end = Integer.min(resultContent.length(),
-                        resultContent.indexOf("。", idx + tmp.length() + 1) + 1);
-                String content = resultContent.substring(start, end);
-                result.put("content", TextUtil.cleanStr(content));
+//                int start = resultContent.lastIndexOf("。", Integer.max(0, idx - 2)) + 1;
+//                int end = resultContent.indexOf("。", idx + tmp.length() + 1) + 1;
+                Integer contentLengthValue = Integer.valueOf(SystemPropertiesUtils.getString("maxcontentlength.value", "30"));
+                int start = Integer.max(0, idx - contentLengthValue);
+                int end = Integer.min(resultContent.length(), idx + tmp.length() + contentLengthValue);
+                if (idx == -1 || start < 0 || end > resultContent.length()) {
+                    result.put("content", TextUtil.cleanStrTmp(tmp));
+                } else {
+                    String content = resultContent.substring(start, end);
+                    result.put("content", TextUtil.cleanStrTmp(content));
+                }
             } catch (Exception e) {
                 return null;
             }
-            result.put("target", TextUtil.cleanStr(tmp));
+            result.put("target", TextUtil.cleanStrTmp(tmp));
+        }
+        if (result.get("target").equals("") || result.get("content").equals(""))
+        {
+            return null;
         }
         result.remove("_type");
         result.remove("_index");
