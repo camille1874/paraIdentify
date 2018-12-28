@@ -49,8 +49,8 @@ public class TextUtil {
         if (s.length() != 0) {
             String strLeft = s.substring(0, min(testLen, strLen));
             String triggerLeft = triggerSentence.substring(0, min(testLen, triggerLen));
-            String strRight = s.substring((strLen > pos) ? pos: 0, strLen);
-            String triggerRight = triggerSentence.substring((triggerLen > pos) ? pos: 0, triggerLen);
+            String strRight = s.substring((strLen > pos) ? pos : 0, strLen);
+            String triggerRight = triggerSentence.substring((triggerLen > pos) ? pos : 0, triggerLen);
             result_left = getEditDistanceMatrix(strLeft, triggerLeft)[strLeft.length()][triggerLeft.length()] / strLeft.length();
             result_right = getEditDistanceMatrix(strRight, triggerRight)[strRight.length()][triggerRight.length()] / strRight.length();
             result_raw = getEditDistanceMatrix(s, triggerSentence)[strLen][triggerLen] / strLen;
@@ -66,21 +66,41 @@ public class TextUtil {
 
     public static List<String> processTriggerSentence(String text) {
         List<String> result = new ArrayList<>();
-        List<String> sens = getSentences(text);
+//        List<String> sens = getSentences(text);
+        List<String> sens =  new ArrayList<>();
+        List<String> paras = getParas(text);
+        for (String para: paras)
+        {
+            sens.addAll(getSentences(para));
+        }
         int minlength = Integer.valueOf(SystemPropertiesUtils.getString("minlength.value", "15"));
         int maxlength = Integer.valueOf(SystemPropertiesUtils.getString("maxlength.value", "40"));
 
         for (String s : sens) {
             if (s.length() > maxlength) {
-                String[] tmp = s.split("[，,]");
+                String[] tmp = s.split("[，]");
                 int i = 0;
                 for (; i < tmp.length - 1; i += 2) {
                     result.add(tmp[i] + "，" + tmp[i + 1]);
                 }
                 if (i == tmp.length - 1) {
-                    result.add(tmp[i] + "，");
+                    result.add(tmp[i]);
                 }
-            } else if (s.length() > minlength){
+            } else if (s.length() > minlength) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
+
+    public static List<String> getParas(String textcontent) {
+        List<String> result = new ArrayList<>();
+        String[] tmp = textcontent.split("\n");
+        int minlength = Integer.valueOf(SystemPropertiesUtils.getString("minlength.value", "15"));
+        for (String s: tmp)
+        {
+            if (s.length() > minlength)
+            {
                 result.add(s);
             }
         }
@@ -88,28 +108,36 @@ public class TextUtil {
     }
 
     public static List<String> getSentences(String textcontent) {
-//        List<String> result = new ArrayList<>();
-//         不采用，对文章长句按两句断句容易因断句不当错失最佳片段
-//        for (String s : textcontent.split("[。|！|?|；|;|？|?|“|”|\"]")) {
-//            if (s.length() < 40) {
-//                result.add(s);
-//            } else {
-//                String[] tmp = s.split("，");
-//                int i = 0;
-//                for (; i < tmp.length - 1; i += 2) {
-//                    result.add(tmp[i] + "，" + tmp[i + 1]);
-//                }
-//                if (i == tmp.length - 1) {
-//                    result.add(tmp[i] + "，");
-//                }
-//            }
-        return Arrays.asList(textcontent.split("[。|！|!|?|；|;|？|?|“|”|\"]"));
+//        return Arrays.asList(textcontent.split("[。|！|!|?|；|;|？|?|“|”|\"]"));
+        String regEx = "[。|！|!|?|；|;|？|?|“|”|\"]";
+        Pattern p = Pattern.compile(regEx);
+        Matcher m = p.matcher(textcontent);
+
+        String[] sentences = p.split(textcontent);
+
+        if (sentences.length > 0) {
+            int count = 0;
+            while (count < sentences.length) {
+                if (m.find()) {
+                    sentences[count] += m.group();
+                }
+                count++;
+            }
+        }
+        return Arrays.asList(sentences);
     }
 
     public static String cleanStr(String str) {
-        String regEx = "[`~@#$%^&*()+=|{}':;'//[//]<>/~@#￥%&*（）——+|{}【】‘；：”“’\"\'\\s*|\t|\r|\n]";
+        String regEx = "[`~@#$%^&*()+=|{}':;'//[//]<>/~@#￥%&*（）——+|{}【】\"\'\\s*|\t|\r|\n]";
         Pattern p = Pattern.compile(regEx);
         Matcher m = p.matcher(str);
-        return m.replaceAll("").replaceAll("[ 　  ]", ""); //去掉全角空格等
+        return m.replaceAll("").replaceAll("[ 　  ]", ""); //去掉全角空格等
+    }
+
+    public static String cleanStrTmp(String str) {
+        String regEx = "[\t|\r|\n]";
+        Pattern p = Pattern.compile(regEx);
+        Matcher m = p.matcher(str);
+        return m.replaceAll("").replaceAll("[　 ]", "").trim();
     }
 }
